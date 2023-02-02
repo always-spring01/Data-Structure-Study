@@ -1,0 +1,23 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define SIZE 10
+
+int main(void) {
+    int *p;
+
+    p = (int *)malloc(SIZE * sizeof(int));
+    if (p == NULL) {
+        printf("메모리가 부족해서 할당할 수 없습니다");
+        return 0;
+    }else {
+        for (int i = 0; i < SIZE; i++) {
+            p[i] = i;
+        }
+        for (int i = 0; i < SIZE; i++) {
+            printf("%d ", p[i]);
+        }
+    }
+    free(p);
+    return 0;
+}
