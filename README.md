@@ -21,3 +21,10 @@
 - swap.c : 포인터를 활용해 함수 내부에서 외부 변수를 변경하는 프로그램 예제
 - malloc.c : malloc() / free() 함수를 사용해 힙 메모리의 동적 메모리를 할당받아 정수형 변수를 생성하는 예제
 - malloc2.c : 동적 메모리를 사용하는 또 다른 예제
+
+### Chapter 04. 스택
+- arrstack.c : array로 구현한 스택
+- structstack.c : struct로 구현한 스택
+- stack.c : pointer를 활용해서 스택을 전역변수가 아닌 형태로 구현함 (객체지향적)
+- stack2.c : malloc(), realloc() 함수를 활용하여 스택의 크기를 동적으로 조절할 수 있도록 구현
+- opendoorstack.c : 스택을 활용한 괄호검사 프로그램
