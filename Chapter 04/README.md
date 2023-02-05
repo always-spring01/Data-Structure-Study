@@ -321,4 +321,145 @@ Study Date : 2023.02.05
         return 1;
     }
     ```
-    
+
+### 4.5 스택의 응용 : 후위 표기 수식의 계산
+>수식을 표현하는 방벙베는 중위(infix), 후위(postfix), 전위(prefix)의 3가지 방법이 있다.
+- 연산자가 피연산자 **뒤에**있는 것을 후위 표기법이라 하고, 프로그래밍에서는 후위 표기법을 선호한다.
+- 중위 표기법은 우리가 일상생활에서 쓰는 수식인데, 컴파일러 입장에서는 후위 표기법이 더욱 계산하기 편리하다.
+- **후위 표기법에서는 괄호를 표기할 필요가 없는 것이 그 이유**이다.
+- 후위 표기식 계산은 스택을 이용해 연산자를 만나면, 스택에서 피연산자를 뽑아와 그 계산 값을 다시 스택에 push하는 방식으로 구현 할 수 있다.
+    ```C
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #define MAX_STACK_SIZE 100
+
+    typedef char element;
+    typedef struct {
+        element *data;
+        int top;
+        int capacity;
+    }StackType;
+
+    // init_stack
+    void init_stack(StackType *s) {
+        s->top = -1;
+        s->capacity = 1;
+        s->data = (element *)malloc(s->capacity * sizeof(element));
+    }
+
+    // is_full
+    void is_full(StackType *s) {
+        if (s->top == s->capacity -1) {
+            s->data = (element *)realloc(s->data, s->capacity * 2 * sizeof(element));
+        }
+    }
+
+    // is_empty                     (0: 비워있음, 1: 비워있지않음)
+    int is_empty(StackType *s) {
+        if (s->top == -1) {
+            return 0;
+        }else {
+            return 1;
+        }
+    }
+
+    // push
+    void push(StackType *s, element item) {
+        is_full(s);
+        s->data[++s->top] = item;
+    }
+
+    // pop
+    int pop(StackType *s) {
+        if (is_empty(s) == 0) {
+            return -1;
+        }else {
+            return s->data[s->top--];
+        }
+    }
+
+    // eval
+    int eval(char exp[]) {
+        int a1, a2, value, i = 0;
+        int len = strlen(exp);
+        char c;
+        StackType s;
+
+        init_stack(&s);
+        for (i = 0; i < len; i++) {
+            c = exp[i];
+            if (c != '+' && c != '-' && c != '*' && c != '/') {
+                value = c - '0';       // 피연산자일 경우, int형으로 변환
+                push(&s, value);
+            }else {
+                a2 = pop(&s);
+                a1 = pop(&s);
+                switch (c)
+                {
+                    case '+': push(&s, a2 + a1); break;
+                    case '-': push(&s, a2 - a1); break;
+                    case '*': push(&s, a2 * a1); break;
+                    case '/': push(&s, a2 / a1); break;
+                }
+            }
+        }
+        return pop(&s);
+    }
+    ```
+    - 후위 표기식이 입력되면, 이를 계산해주는 알고리즘이다.
+    - 스택을 이용하면 간단하게 구현이 가능하다!
+- 이제 중위표기식을 후위표기식으로 변환하기만 한다면, 컴파일러의 일부를 구현할 수 있다.
+    ```C
+    // prec
+    int prec(char op) {
+        switch (op)
+        {
+            case '(': case ')': return 0;
+            case '+': case '-': return 1;
+            case '*': case '/': return 2;
+        }
+        return -1;
+    }
+
+    // infix_to_prefix
+    void infix_to_prefix(char exp[]) {
+        int i =0;
+        char ch, top_op;
+        int len = strlen(exp);
+        StackType s;
+
+        init_stack(&s);
+        for (i = 0; i < len; i++){
+            ch = exp[i];
+            switch (ch) {
+                case '+': case '-': case '*': case '/':
+                    while (is_empty(&s) == 1 && (prec(ch) <= prec(peek(&s)))) {
+                        printf("%c", pop(&s));
+                    }
+                    push(&s, ch);
+                    break;
+                case '(':
+                    push(&s, ch);
+                    break;
+                case ')':
+                    top_op = pop(&s);
+                    while (top_op != '(') {
+                        printf("%c", top_op);
+                        top_op = pop(&s);
+                    }
+                    break;
+                default:
+                    printf("%c", ch);
+                    break;
+            }
+
+        }
+        while (is_empty(&s) == 1) {
+            printf("%c", pop(&s));
+        }
+    }
+    ```
+    - prec로 우선순위를 받아내 진행한다.
+    - infix_to_prefix를 통해 우선순위가 높은 연산자가 스택에 있다면 먼저 pop하고, 이후 남은 연산자를 pop한다.
+    - 만약, 괄호가 들어온다면 괄혿 닫기가 나올 때 까지 값을 pop한다
