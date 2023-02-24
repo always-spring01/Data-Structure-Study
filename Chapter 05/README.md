@@ -102,7 +102,7 @@ Study Date : 2023.02.20
 - 원형 큐를 사용하면, 선형 큐와 달리 무한으로 메모리 낭비를 줄이면서 사용가능하다.
 - 원형 큐에서는 front와 rear의 개념이 약간 변형되는데, front, rear 모두 초기값은 배열의 0으로 지정한다. 이후 삽입할 때에는 먼저 rear의 값을 증가하고 증가한 배열에 값을 삽입한다. 삭제도 동일하게 front를 먼저 증가시키고 값을 삭제하는 방식으로 진행한다.
 - front == rear이면 큐가 비어있음을 의미한다.
-- 원형큐에서는 항상 **하나의 자리를 비워둔다**. 왜냐하면 포화 상태와 공백 상태를 구별하기 위함이다. 
+- 원형큐에서는 항상 **하나의 자리를 비워둔다**. 포화 상태와 공백 상태를 구별하기 위함이다. 
 
     ```C
     #include <stdio.h>
@@ -222,7 +222,93 @@ Study Date : 2023.02.20
 ### 5.5 덱이란?
 >덱(deque)는 double-ended queue의 줄임말로서 큐의 front와 rear에서 모두 삽입과 삭제가 가능한 큐를 의미한다.
 
-- 그럼에도 큐와 동일하게 중간에서 값을 삽입하는 것은 허용하지 않는다.
-- 덱은 큐와 스택의 연산을 모두 가지고 있는 것이 특징이다. 예를 들자면, add_front와 delete_front 연산은 스택의 push와 pop과 동일하다.
-- 또한 delete_front와 add_rear 연산은 큐의 enqueue, dequeue와 동일하다.
-- 덱은 원형 큐와 동일한 구조를 지니며 코드화하면 아래와 같다.
+- 덱의 추상 자료형
+    - 객체 : n개의 element형의 요소들의 순서 있는 모양
+    - 연산 :
+        - create() ::= 객체 생성
+        - init(dq) ::= 객체 초기화
+        - is_empty(dq) ::= 덱이 비어있는지 확인
+        - is_full(dq) ::= 덱이 포화상태인지 확인
+        - add_front(dq, e) ::= 덱의 앞에 e 요소 추가
+        - add_rear(dq, e) ::= 덱의 마지막에 e요소 추가
+        - delete_front(dq) ::= 덱의 앞에 요소 제거
+        - delete_rear(dq) ::= 덱의 마지막 요소 제거
+        - get_front(dq) ::= 덱의 앞의 요소 반환
+        - get_rear(dq) ::= 덱의 마지막 요소 반환
+- 덱은 스택과 큐의 연산을 모두 가지고 있다.
+- 스택의 push(add_front), pop(delete_front) / 큐의 enqueue(add_rear), dequeue(delete_front) 연산으로 비교가 가능하다.
+- 따라서 덱은 큐와 스택에 비해 조금 더 융통성 있는 자료구조라 할 수 있다.
+- 배열을 이용해서 덱을 구현할 때에는, 원형 큐의 개념을 확장하면 구현할 수 있다. 
+- **덱에서 front는 항상 공백(empty) 값을 가르키고 있기 때문에, front + 1을 항상 해줘야 한다.**
+
+    ```C
+    #include <stdio.h>
+    #include <stdlib.h>
+
+    #define MAX_DEQUE_SIZE 5
+
+    typedef int element;
+    typedef struct {
+        int front;
+        int rear;
+        element data[MAX_DEQUE_SIZE];
+    } DequeType;
+
+    void init_deque(DequeType *dq) {
+        dq->front = 0;
+        dq->rear = 0;
+    }
+
+    int is_empty(DequeType *dq) {
+        return dq->front == dq->rear;
+    }
+
+    int is_full(DequeType *dq) {
+        if ((dq->rear + 1) % MAX_DEQUE_SIZE == dq->front) {
+            return 1;
+        }else {
+            return 0;
+        }
+    }
+
+    void add_rear(DequeType *dq, element item) {
+        if (is_full(dq)) {
+            printf("오류 : 포화상태");
+            exit(1);
+        }
+        dq->rear = (dq->rear + 1) % MAX_DEQUE_SIZE;
+        dq->data[dq->rear] = item;
+    }
+
+    element delete_front(DequeType *dq) {
+        if (is_empty(dq)) {
+            printf("오류 : 비어있음");
+            exit(1);
+        }
+        dq->front = (dq->front + 1) % MAX_DEQUE_SIZE;
+        return dq->data[dq->front];
+    }
+
+    void add_front(DequeType *dq, element item) {
+        if (is_full(dq)) {
+            printf("오류 : 포화상태");
+            exit(1);
+        }
+        dq->data[dq->front] = item;
+        dq->front = (dq->front - 1 + MAX_DEQUE_SIZE) % MAX_DEQUE_SIZE;
+    }
+
+    element delete_rear(DequeType *dq) {
+        if(is_empty(dq)) {
+            printf("오류 : 비어있음");
+            exit(1);
+        }
+        element val = dq->data[dq->rear];
+        dq->rear = (dq->rear - 1 + MAX_DEQUE_SIZE) % MAX_DEQUE_SIZE;
+        return val;
+    }
+    ```
+- 위 코드는 덱을 원형큐 개념을 적용해서 코드화하였다.
+- 추가된 함수는 add_front, delete_rear인데, front 부분에서 add 하려면 item을 추가하고, 기존 값에서 1만큼 뒤로 이동하면 된다.
+- delete_rear 함수는 rear 부분에서 delete하는 것이므로 현 위치에 값을 return 함과 동시에 rear 값을 1만큼 뒤로 이동하면 된다.
+- 스택이나 큐와 마찬가지로 덱도 연결 리스트로 구현할 수 있다. 그러나 연결된 덱은 스택이나 큐에 비해 더 복잡하다.

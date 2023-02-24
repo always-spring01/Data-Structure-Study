@@ -1,63 +1,74 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MAX_QUEUE_SIZE 5
+#define MAX_DEQUE_SIZE 5
+
 typedef int element;
 typedef struct {
-    element data[MAX_QUEUE_SIZE];
-    int front, rear;
+    int front;
+    int rear;
+    element data[MAX_DEQUE_SIZE];
 } DequeType;
 
-void init_deque(DequeType *q) {
-    q->front = 0;
-    q->rear = 0;
+void init_deque(DequeType *dq) {
+    dq->front = 0;
+    dq->rear = 0;
 }
 
-int is_empty(DequeType *q) {
-    return (q->front == q->rear);
+int is_empty(DequeType *dq) {
+    return dq->front == dq->rear;
 }
 
-int is_full(DequeType *q) {
-    return ((q->rear + 1) % MAX_QUEUE_SIZE == q->front);
-}
-
-void deque_print(DequeType *q) {
-    if (!is_empty(q)) {
-        int i = q->front;
-        do {
-            i = (i + 1) % MAX_QUEUE_SIZE;
-            printf("%d | ", q->data[i]);
-            if (i == q->rear) {
-                break;
-            }
-        }while (i != q->front);
-
-        printf("\n");
+int is_full(DequeType *dq) {
+    if ((dq->rear + 1) % MAX_DEQUE_SIZE == dq->front) {
+        return 1;
+    }else {
+        return 0;
     }
 }
 
-void add_rear(DequeType *q, element item) {
-    if (is_full(q)){
-        printf("에러 : 가득참");
+void add_rear(DequeType *dq, element item) {
+    if (is_full(dq)) {
+        printf("오류 : 포화상태");
         exit(1);
     }
-    q->rear = (++q->rear) % MAX_QUEUE_SIZE;
-    q->data[q->rear] = item;
+    dq->rear = (dq->rear + 1) % MAX_DEQUE_SIZE;
+    dq->data[dq->rear] = item;
 }
 
-void add_front(DequeType *q, element item) {
-    if (is_full(q)) {
-        printf("에러 : 가득참");
+element delete_front(DequeType *dq) {
+    if (is_empty(dq)) {
+        printf("오류 : 비어있음");
         exit(1);
     }
-    q->data[q->front] = item;
-    q->front = (q->front - 1 + MAX_QUEUE_SIZE) % MAX_QUEUE_SIZE;
+    dq->front = (dq->front + 1) % MAX_DEQUE_SIZE;
+    return dq->data[dq->front];
 }
 
-void delete_rear(DequeType *q) {
-    if (is_empty(q)) {
-        printf("에러 : 비어있음");
+void add_front(DequeType *dq, element item) {
+    if (is_full(dq)) {
+        printf("오류 : 포화상태");
         exit(1);
     }
-    return 
+    dq->data[dq->front] = item;
+    dq->front = (dq->front - 1 + MAX_DEQUE_SIZE) % MAX_DEQUE_SIZE;
+}
+
+element delete_rear(DequeType *dq) {
+    if(is_empty(dq)) {
+        printf("오류 : 비어있음");
+        exit(1);
+    }
+    element val = dq->data[dq->rear];
+    dq->rear = (dq->rear - 1 + MAX_DEQUE_SIZE) % MAX_DEQUE_SIZE;
+    return val;
+}
+
+int main(void) {
+    DequeType dq;
+    init_deque(&dq);
+    add_rear(&dq, 2);
+    printf("%d", delete_rear(&dq));
+
+    return 0;
 }
